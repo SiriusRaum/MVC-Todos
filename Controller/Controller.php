@@ -1,43 +1,62 @@
 <?php
-// Variables d'affichage (utilisées par la View)
-$message = '';
-$users = [];
 
-// Indique au Model s'il doit enregistrer un utilisateur
-$registerUser = false;
+require_once '../Model/Model.php';
+require_once '../View/View.php';
 
-// ALGORITHME D'INSCRIPTION D'UN UTILISATEUR
-// 1) Vérifier que je reçois un formulaire d'inscription
-if (isset($_POST['submit'])) {
 
-    // 2) Vérifier que tous les champs sont remplis
+
+// Algorithme d'inscription : retourne le message à afficher
+function registerUser(PDO $pdo): string
+{
+    // 1) Tous les champs sont-ils remplis ?
     if (empty($_POST['prenom']) or empty($_POST['nom']) or empty($_POST['email']) or empty($_POST['password'])) {
-        $message = "Veuillez remplir tous les champs du formulaire.";
-
-    // 3.a) Vérifier le format de l'email
-    } elseif (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
-        $message = "Votre email n'est pas au bon format.";
-
-    // 3.b) Vérifier la longueur du mot de passe
-    } elseif (mb_strlen($_POST['password'], 'UTF-8') < 12) {
-        $message = "Votre mot de passe doit faire au moins 12 caractères.";
-
-    } else {
-        // 4) Nettoyage des données 
-        $prenom = trim($_POST['prenom']);
-        $nom = trim($_POST['nom']);
-        $email = trim($_POST['email']);
-
-        // 5) Hasher le mot de passe
-        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-
-        // Les données sont valides : le Model peut les enregistrer
-        $registerUser = true;
+        return "Veuillez remplir tous les champs du formulaire.";
     }
+
+    // 2) Nettoyage
+    $prenom = trim($_POST['prenom']);
+    $nom = trim($_POST['nom']);
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
+
+    // 3) Vérification du format
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return "Votre email n'est pas au bon format.";
+    }
+// 4) Vérification de la longueur du mot de passe
+    if (mb_strlen($password, 'UTF-8') < 12) {
+        return "Votre mot de passe doit faire au moins 12 caractères.";
+    }
+
+    // 5) L'email est-il disponible ?
+    if (emailExists($pdo, $email)) {
+        return "Cet email est déjà utilisé par un autre compte.";
+    }
+
+    // 6) Hash du mot de passe puis enregistrement
+    insertUser($pdo, $prenom, $nom, $email, password_hash($password, PASSWORD_DEFAULT));
+
+    return "L'utilisateur a été enregistré : "
+        . htmlspecialchars("{$prenom} {$nom} - {$email}");
 }
 
-// Appel du Model : enregistrement (si $registerUser) + récupération de la liste ($users)
-require '../Model/Model.php';
+// Fonction principale de la page
+function Controller(): void
+{
+    $message = '';
+    $users = [];
 
-// Appel de la View : affichage de $message et $users
-require '../View/View.php';
+    try {
+        $pdo = getPdo();
+
+        if (isset($_POST['submit'])) {
+            $message = registerUser($pdo);
+        }
+
+        $users = getAllUsers($pdo);
+         } catch (PDOException $error) {
+        $message = $error->getMessage();   
+    }
+
+    renderView($message, $users);
+}

@@ -1,4 +1,6 @@
-
+<?php
+function renderView($message, $users) {
+    ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -37,3 +39,4 @@
     </main>
 </body>
 </html>
+            <?php    }
