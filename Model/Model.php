@@ -1,30 +1,40 @@
 <?php
-// création du pdo pour la connexion à la BDD
-function getPdo(): PDO
+class Model {
+    //attributs
+    private PDO $pdo;
+
+    //constructeur
+    public function __construct(PDO $pdo) {
+        $this->pdo = $pdo;
+    }
+
+    //methode
+    // Récupération de l'objet PDO
+    public function getPdo(): PDO {
+        return $this->pdo;
+        }
+        // Vérification de l'existence d'un email
+        public function emailExists($email): bool
 {
-    return new PDO('mysql:host=localhost;dbname=todos;charset=utf8mb4','root','root', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-}
-//Vérification si l'email existe déjà dans la BDD
-function emailExists(PDO $pdo, string $email): bool
-{
-    $request = $pdo->prepare('SELECT 1 FROM users WHERE email = ?');
+    $request = $this->pdo->prepare('SELECT 1 FROM users WHERE email = ?');
     $request->execute([$email]);
  
     return $request->fetch() !== false;
 }
-// Insertion d'un nouvel utilisateur dans la BDD
-function insertUser(PDO $pdo, string $prenom, string $nom, string $email, string $passwordHash): void
+// Insertion d'un nouvel utilisateur
+public function insertUser(string $prenom, string $nom, string $email, string $passwordHash): void
 {
-    $request = $pdo->prepare(
+    $request = $this->pdo->prepare(
         'INSERT INTO users (firstname, lastname, email, `password`) VALUES (?, ?, ?, ?)'
     );
     $request->execute([$prenom, $nom, $email, $passwordHash]);
 }
 // Récupération de tous les utilisateurs
-function getAllUsers(PDO $pdo): array
+public function getAllUsers(): array
 {
-$request = $pdo->prepare('SELECT firstname, lastname, email FROM users');
+$request = $this->pdo->prepare('SELECT firstname, lastname, email FROM users');
     $request->execute();
  
     return $request->fetchAll(PDO::FETCH_ASSOC);
+}
 }

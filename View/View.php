@@ -1,8 +1,17 @@
 <?php
-function renderView($message, $users) {
+
+class View{
+//attributs 
+
+
+//constructeur
+
+
+//method
+public function render($message, $users): void {
     ?>
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -40,3 +49,4 @@ function renderView($message, $users) {
 </body>
 </html>
             <?php    }
+}

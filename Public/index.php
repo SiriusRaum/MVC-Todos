@@ -1,4 +1,5 @@
- <?php
-   require_once '../Controller/Controller.php';
+<?php
+require_once '../Controller/Controller.php';
 
- Controller();
+$controller = new Controller();
+$controller->home();
